@@ -1,0 +1,16 @@
+workflow: full
+phase: build
+build_mode: null
+isolation: null
+verify_mode: null
+base_ref: 0bbf05ec8de950e5cff1078881a85c6ddb924cca
+design_doc: docs/superpowers/specs/2026-06-02-wechat-acp-plugin-integration-design.md
+plan: docs/superpowers/plans/2026-06-02-wechat-acp-plugin-integration.md
+verify_result: pending
+verification_report: null
+branch_status: pending
+created_at: 2026-06-02
+verified_at: null
+archived: false
+handoff_context: openspec/changes/add-wechat-aCP-integration/.comet/handoff/design-context.json
+handoff_hash: bc377a6ef576c3278d5dc8ee1da55e8604546a1d42a6e6e013ddfd487635c1ab

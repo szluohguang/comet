@@ -1,0 +1,13 @@
+{
+  "change": "add-wechat-aCP-integration",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "comet-handoff.sh",
+  "context_hash": "bc377a6ef576c3278d5dc8ee1da55e8604546a1d42a6e6e013ddfd487635c1ab",
+  "files": [
+    { "path": "openspec/changes/add-wechat-aCP-integration/proposal.md", "sha256": "d3dbed1cb1634ca808522157df70bcd19b5de8b071e351cdf3814a8ee5c61f75" },
+    { "path": "openspec/changes/add-wechat-aCP-integration/design.md", "sha256": "d05a3c1e20cf191e7d70699eedaff0938cfa1a9ecda6538bed9d0c533bb92436" },
+    { "path": "openspec/changes/add-wechat-aCP-integration/tasks.md", "sha256": "ed954c8ec1d554ca8d547aca5c0c2fa6a3975256db11e04aeb57b19c00f8c7ad" }
+  ]
+}
