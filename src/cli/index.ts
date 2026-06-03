@@ -31,6 +31,39 @@ program
   .version(version);
 
 program
+  .command('guide')
+  .description('Show categorized command reference')
+  .action(() => {
+    console.log(`
+  Comet 命令速查
+
+  工作流命令:
+    init      初始化 Comet 工作流
+    status    查看活跃 change 状态
+    doctor    诊断安装健康状态
+    update    更新 skill 文件
+
+  插件管理:
+    plugin list      列出已注册插件
+    plugin register  注册插件
+    plugin start     启动插件
+    plugin stop      停止插件
+
+  微信集成:
+    wechat bind      绑定微信用户
+    wechat status    查看绑定状态
+    wechat unbind    解绑微信
+    wechat notify    发送通知（agent 内部使用）
+    wechat poll      检查微信回复（agent 内部使用）
+
+  通用选项:
+    --help, -h   查看详细帮助
+    --version    查看版本号
+    --json       JSON 格式输出（大部分命令支持）
+`);
+  });
+
+program
   .command('init [path]')
   .description('Initialize Comet workflow in your project')
   .option('--yes', 'Auto-install missing components, skip existing')
