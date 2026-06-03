@@ -2,6 +2,16 @@
 
 All notable changes to @rpamis/comet will be documented in this file.
 
+## What's Changed [0.4.0] - 2026-06-02
+
+### Added
+
+- **插件系统**: 新增 Plugin SDK（`src/plugins/sdk.ts`）定义统一接口，支持 `Plugin`、`CommandMapper` 和 `ResponseFormatter`
+- **PluginManager**: 实现插件注册、启动、停止的生命周期管理（`src/plugin/manager.ts`）
+- **PluginLoader**: 支持通过动态 `import()` 加载插件包（`src/plugin/loader.ts`）
+- **CLI 插件管理**: 新增 `comet plugin` 子命令（register / list / start / stop）
+- **微信通道插件**: 创建 `plugins/wechat-plugin/` 包，包含 ACP 命令适配器（`/comet` 前缀解析 + 白名单校验）
+
 ## What's Changed [0.3.5] - 2026-05-29
 
 ### Added
