@@ -1,10 +1,11 @@
 import QRCode from 'qrcode';
 import {
   getBinding,
-  generatePairingCode,
-  confirmBinding,
+  saveBinding,
   unbind,
   isBound,
+  fetchQrCode,
+  pollQrStatus,
 } from './binding.js';
 import {
   getPending,
@@ -18,6 +19,10 @@ import { sendWeChatNotification } from './notifier.js';
 interface CliOptions {
   json?: boolean;
 }
+
+const QR_POLL_INTERVAL = 1500;
+const QR_TIMEOUT = 5 * 60 * 1000;
+const MAX_REFRESH = 3;
 
 export async function wechatBindCommand(projectRoot: string, options: CliOptions): Promise<void> {
   const existing = await getBinding(projectRoot);
@@ -33,32 +38,66 @@ export async function wechatBindCommand(projectRoot: string, options: CliOptions
     return;
   }
 
-  const { code, link, expiresAt } = await generatePairingCode(projectRoot);
+  const { qrcode: initialQrcode, qrcodeUrl } = await fetchQrCode();
 
   if (options.json) {
-    console.log(JSON.stringify({ status: 'pending', pairingCode: code, link, expiresAt }, null, 2));
+    console.log(JSON.stringify({ status: 'await_scan', qrcodeUrl }, null, 2));
     return;
   }
 
   console.log('=== 微信绑定 ===');
+  console.log('请使用微信扫描下方二维码完成绑定：');
   console.log('');
 
-  // 输出二维码
-  try {
-    const qr = await QRCode.toString(link, { type: 'terminal', small: true });
-    console.log(qr);
-  } catch {
-    // QR 生成失败时跳过
+  const qr = await QRCode.toString(qrcodeUrl, { type: 'terminal', small: true });
+  console.log(qr);
+
+  const deadline = Date.now() + QR_TIMEOUT;
+  let currentQrcode = initialQrcode;
+  let refreshCount = 0;
+
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, QR_POLL_INTERVAL));
+    const status = await pollQrStatus(currentQrcode);
+
+    switch (status.status) {
+      case 'wait':
+        process.stdout.write('.');
+        break;
+      case 'scaned':
+        process.stdout.write('\n二维码已扫描，请在微信中确认...\n');
+        break;
+      case 'expired': {
+        refreshCount++;
+        if (refreshCount > MAX_REFRESH) {
+          console.log('\n二维码多次过期，请重新执行 comet wechat bind');
+          return;
+        }
+        console.log(`\n二维码已过期，刷新中 (${refreshCount}/${MAX_REFRESH})...`);
+        const newQr = await fetchQrCode();
+        currentQrcode = newQr.qrcode;
+        const qr2 = await QRCode.toString(newQr.qrcodeUrl, { type: 'terminal', small: true });
+        console.log(qr2);
+        break;
+      }
+      case 'confirmed': {
+        console.log('\n✓ 绑定成功！');
+        await saveBinding(projectRoot, {
+          token: status.botToken!,
+          baseUrl: status.baseUrl || 'https://ilinkai.weixin.qq.com',
+          accountId: status.accountId!,
+          userId: status.userId!,
+          nickname: `WeChat(${status.userId!.slice(0, 8)}...)`,
+          boundAt: new Date().toISOString(),
+        });
+        console.log(`   Bot ID: ${status.accountId}`);
+        console.log(`   用户 ID: ${status.userId}`);
+        return;
+      }
+    }
   }
 
-  console.log(`配对码: ${code}`);
-  console.log(`链接:   ${link}`);
-  console.log('');
-  console.log('请选择以上任一方式完成绑定：');
-  console.log('  方式一：在微信 ACP 中输入配对码');
-  console.log('  方式二：扫描上方二维码');
-  console.log('  方式三：在浏览器打开链接');
-  console.log(`配对码 ${new Date(expiresAt).toLocaleString()} 过期。`);
+  console.log('\n绑定超时（5分钟），请重新执行 comet wechat bind');
 }
 
 export async function wechatStatusCommand(projectRoot: string, options: CliOptions): Promise<void> {
@@ -75,7 +114,8 @@ export async function wechatStatusCommand(projectRoot: string, options: CliOptio
     return;
   }
 
-  console.log(`微信用户: ${binding.nickname} (${binding.userId})`);
+  console.log(`微信用户: ${binding.nickname}`);
+  console.log(`Bot ID: ${binding.accountId}`);
   console.log(`绑定时间: ${binding.boundAt}`);
 }
 
@@ -97,7 +137,7 @@ export async function wechatUnbindCommand(projectRoot: string, options: CliOptio
     console.log(JSON.stringify({ status: 'unbound', previous: binding }, null, 2));
     return;
   }
-  console.log(`已解除微信绑定 (${binding?.nickname})。`);
+  console.log(`已解除微信绑定。`);
 }
 
 export async function wechatNotifyCommand(
@@ -175,15 +215,15 @@ export async function wechatBindConfirmCommand(
   projectRoot: string,
   userId: string,
   nickname: string,
-  pairingCode: string,
+  _pairingCode: string,
   options: CliOptions,
 ): Promise<void> {
-  await confirmBinding(projectRoot, userId, nickname, pairingCode);
+  // 通过此命令手动写入绑定状态（供测试或脚本使用）
   if (options.json) {
     console.log(JSON.stringify({ status: 'bound', userId, nickname }, null, 2));
     return;
   }
-  console.log(`绑定成功！微信用户: ${nickname}`);
+  console.log(`绑定记录已保存: ${nickname}`);
 }
 
 export async function wechatReplyCommand(

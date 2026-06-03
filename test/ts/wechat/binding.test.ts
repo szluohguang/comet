@@ -3,14 +3,22 @@ import path from 'path';
 import os from 'os';
 import { promises as fs } from 'fs';
 import {
-  generatePairingCode,
-  confirmBinding,
+  saveBinding,
   unbind,
   isBound,
   getBinding,
+  type BindingState,
 } from '../../../src/wechat/binding.js';
 
 const TEST_DIR = path.join(os.tmpdir(), 'comet-wechat-test-' + Date.now());
+const sampleBinding: BindingState = {
+  token: 'bot_token_abc',
+  baseUrl: 'https://ilinkai.weixin.qq.com',
+  accountId: 'bot_123',
+  userId: 'wx_user_456',
+  nickname: '测试用户',
+  boundAt: new Date().toISOString(),
+};
 
 describe('WeChat Binding', () => {
   beforeEach(async () => {
@@ -21,39 +29,27 @@ describe('WeChat Binding', () => {
     await fs.rm(TEST_DIR, { recursive: true, force: true });
   });
 
-  it('generates pairing code with correct format', async () => {
-    const result = await generatePairingCode(TEST_DIR);
-    expect(result.code).toMatch(/^WX-[A-HJ-NP-Z2-9]{6}$/);
-    expect(result.link).toContain(result.code);
-    expect(result.expiresAt).toBeTruthy();
-  });
-
-  it('generates unique pairing codes', async () => {
-    const r1 = await generatePairingCode(TEST_DIR);
-    const r2 = await generatePairingCode(TEST_DIR);
-    expect(r1.code).not.toBe(r2.code);
-  });
-
   it('isBound returns false when not bound', async () => {
     expect(await isBound(TEST_DIR)).toBe(false);
   });
 
-  it('confirmBinding stores binding state', async () => {
-    await confirmBinding(TEST_DIR, 'wx_user_123', '测试用户', 'WX-ABC123');
+  it('saveBinding stores binding state', async () => {
+    await saveBinding(TEST_DIR, sampleBinding);
     const bound = await isBound(TEST_DIR);
     expect(bound).toBe(true);
   });
 
   it('getBinding returns binding state', async () => {
-    await confirmBinding(TEST_DIR, 'wx_user_456', '用户A', 'WX-DEF456');
+    await saveBinding(TEST_DIR, sampleBinding);
     const state = await getBinding(TEST_DIR);
     expect(state).not.toBeNull();
     expect(state!.userId).toBe('wx_user_456');
-    expect(state!.nickname).toBe('用户A');
+    expect(state!.nickname).toBe('测试用户');
+    expect(state!.token).toBe('bot_token_abc');
   });
 
   it('unbind removes binding state', async () => {
-    await confirmBinding(TEST_DIR, 'wx_user_789', '用户B', 'WX-GHI789');
+    await saveBinding(TEST_DIR, sampleBinding);
     expect(await isBound(TEST_DIR)).toBe(true);
     await unbind(TEST_DIR);
     expect(await isBound(TEST_DIR)).toBe(false);
