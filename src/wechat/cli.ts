@@ -1,3 +1,4 @@
+import QRCode from 'qrcode';
 import {
   getBinding,
   generatePairingCode,
@@ -41,10 +42,22 @@ export async function wechatBindCommand(projectRoot: string, options: CliOptions
 
   console.log('=== 微信绑定 ===');
   console.log('');
+
+  // 输出二维码
+  try {
+    const qr = await QRCode.toString(link, { type: 'terminal', small: true });
+    console.log(qr);
+  } catch {
+    // QR 生成失败时跳过
+  }
+
   console.log(`配对码: ${code}`);
   console.log(`链接:   ${link}`);
   console.log('');
-  console.log('在微信 ACP 中输入配对码或打开链接完成绑定。');
+  console.log('请选择以上任一方式完成绑定：');
+  console.log('  方式一：在微信 ACP 中输入配对码');
+  console.log('  方式二：扫描上方二维码');
+  console.log('  方式三：在浏览器打开链接');
   console.log(`配对码 ${new Date(expiresAt).toLocaleString()} 过期。`);
 }
 
