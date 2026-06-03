@@ -1,8 +1,8 @@
 workflow: full
-phase: build
+phase: verify
 build_mode: direct
 isolation: branch
-verify_mode: null
+verify_mode: full
 base_ref: 5bfdf9d03ab222beb3823a51dd3566304e4d4181
 design_doc: docs/superpowers/specs/2026-06-03-wechat-notification-binding-design.md
 plan: null
