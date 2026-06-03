@@ -4,6 +4,7 @@ import { initCommand } from '../commands/init.js';
 import { statusCommand } from '../commands/status.js';
 import { doctorCommand } from '../commands/doctor.js';
 import { updateCommand } from '../commands/update.js';
+import { pluginListCommand, pluginRegisterCommand } from '../commands/plugin.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../../package.json');
@@ -68,5 +69,26 @@ program
   .action(async (targetPath = '.', options) => {
     await updateCommand(targetPath, options);
   });
+
+program
+  .command('plugin')
+  .description('Manage plugins')
+  .addCommand(
+    new Command('list')
+      .description('List registered plugins')
+      .option('--json', 'Output as JSON')
+      .action(async (options) => {
+        await pluginListCommand('.', options);
+      }),
+  )
+  .addCommand(
+    new Command('register')
+      .description('Register a plugin')
+      .argument('<name>', 'Plugin name (directory under plugins/)')
+      .option('--json', 'Output as JSON')
+      .action(async (name, options) => {
+        await pluginRegisterCommand('.', name, options);
+      }),
+  );
 
 program.parse();
