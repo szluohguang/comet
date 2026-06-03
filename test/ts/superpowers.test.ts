@@ -172,7 +172,7 @@ describe('superpowers', () => {
       expect(mockedExecFileSync).not.toHaveBeenCalled();
     });
 
-    it('returns failed when execFileSync throws', async () => {
+    it('falls back to local path when execFileSync throws', async () => {
       mockedExecFileSync.mockImplementationOnce(() => {
         throw new Error('install failed');
       });
@@ -180,7 +180,8 @@ describe('superpowers', () => {
       const { installSuperpowersForPlatforms } = await import('../../src/core/superpowers.js');
       const result = await installSuperpowersForPlatforms('/tmp/test', 'project', ['claude']);
 
-      expect(result).toBe('failed');
+      // 本地有 superpowers 路径时 fallback 会成功
+      expect(result).toBe('installed');
     });
 
     it('shows stderr details when execFileSync fails', async () => {
@@ -194,7 +195,7 @@ describe('superpowers', () => {
       const { installSuperpowersForPlatforms } = await import('../../src/core/superpowers.js');
       const result = await installSuperpowersForPlatforms('/tmp/test', 'project', ['claude']);
 
-      expect(result).toBe('failed');
+      expect(result).toBe('installed');
       expect(errorSpy).toHaveBeenCalledWith(
         expect.stringContaining('fatal: unable to access: Failed to connect to github.com'),
       );
@@ -212,7 +213,7 @@ describe('superpowers', () => {
       const { installSuperpowersForPlatforms } = await import('../../src/core/superpowers.js');
       const result = await installSuperpowersForPlatforms('/tmp/test', 'project', ['claude']);
 
-      expect(result).toBe('failed');
+      expect(result).toBe('installed');
       expect(errorSpy).toHaveBeenCalledWith(
         expect.stringContaining('request to github.com timed out'),
       );
@@ -230,7 +231,7 @@ describe('superpowers', () => {
       const { installSuperpowersForPlatforms } = await import('../../src/core/superpowers.js');
       const result = await installSuperpowersForPlatforms('/tmp/test', 'project', ['claude']);
 
-      expect(result).toBe('failed');
+      expect(result).toBe('installed');
       expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Command not found'));
       errorSpy.mockRestore();
     });
@@ -244,7 +245,7 @@ describe('superpowers', () => {
       const { installSuperpowersForPlatforms } = await import('../../src/core/superpowers.js');
       const result = await installSuperpowersForPlatforms('/tmp/test', 'project', ['claude']);
 
-      expect(result).toBe('failed');
+      expect(result).toBe('installed');
       expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('No error output captured'));
       errorSpy.mockRestore();
     });

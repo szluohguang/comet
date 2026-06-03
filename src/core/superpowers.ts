@@ -1,7 +1,7 @@
 import { execFileSync } from 'child_process';
 import os from 'os';
 import path from 'path';
-import { cp, mkdir, mkdtemp, readdir, rm } from 'fs/promises';
+import { access, cp, mkdir, mkdtemp, readdir, rm } from 'fs/promises';
 
 import { printCommandErrorDetails } from './command-error.js';
 import { getPlatformSkillsDir, PLATFORMS } from './platforms.js';
@@ -42,6 +42,7 @@ const VALID_PLATFORM_IDS = new Set(Object.keys(SKILLS_AGENT_MAP));
 const SUPERPOWERS_INSTALL_TIMEOUT_MS = 300_000;
 const LINGMA_PLATFORM_ID = 'lingma';
 const LINGMA_STAGE_AGENT = 'claude-code';
+const LOCAL_SUPERPOWERS_PATH = '/Users/admin/Documents/mygithub/superpowers';
 
 function buildSuperpowersInstallCommand(
   _projectPath: string,
@@ -134,6 +135,44 @@ async function installSuperpowersForLingma(
   }
 }
 
+async function installFromLocalPath(
+  projectPath: string,
+  scope: InstallScope,
+  platformIds: string[],
+): Promise<boolean> {
+  const localSkillsDir = path.join(LOCAL_SUPERPOWERS_PATH, 'skills');
+  try {
+    await access(localSkillsDir);
+  } catch {
+    console.error(`    本地 superpowers 路径不存在: ${localSkillsDir}`);
+    return false;
+  }
+
+  const baseDir = scope === 'global' ? os.homedir() : projectPath;
+  let allSucceeded = true;
+
+  for (const platformId of platformIds) {
+    const platform = PLATFORMS.find((p) => p.id === platformId);
+    if (!platform) continue;
+
+    const platformSkillsDir = path.join(
+      baseDir,
+      getPlatformSkillsDir(platform, scope),
+      'skills',
+    );
+
+    try {
+      await copyDirectoryContents(localSkillsDir, platformSkillsDir);
+      console.error(`    Superpowers -> ${platform.name}: installed from local path`);
+    } catch (error) {
+      console.error(`    ${platform.name}: 本地安装失败: ${(error as Error).message}`);
+      allSucceeded = false;
+    }
+  }
+
+  return allSucceeded;
+}
+
 async function installSuperpowersForPlatforms(
   projectPath: string,
   scope: InstallScope,
@@ -159,15 +198,26 @@ async function installSuperpowersForPlatforms(
         shell: process.platform === 'win32',
       });
     } catch (error) {
-      console.error(`    Superpowers install failed: ${(error as Error).message}`);
+      console.error(`    Superpowers install from git failed: ${(error as Error).message}`);
+      console.error('    尝试从本地路径安装...');
       printCommandErrorDetails(error);
-      failed = true;
+
+      const localOk = await installFromLocalPath(projectPath, scope, skillsCliPlatformIds);
+      if (!localOk) {
+        failed = true;
+      }
     }
   }
 
   if (shouldInstallLingma) {
     const lingmaStatus = await installSuperpowersForLingma(projectPath, scope);
-    if (lingmaStatus === 'failed') failed = true;
+    if (lingmaStatus === 'failed') {
+      console.error('    Lingma 安装失败，尝试从本地路径安装...');
+      const localOk = await installFromLocalPath(projectPath, scope, [LINGMA_PLATFORM_ID]);
+      if (!localOk) {
+        failed = true;
+      }
+    }
   }
 
   return failed ? 'failed' : 'installed';
