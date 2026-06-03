@@ -10,6 +10,15 @@ import {
   pluginStartCommand,
   pluginStopCommand,
 } from '../commands/plugin.js';
+import {
+  wechatBindCommand,
+  wechatStatusCommand,
+  wechatUnbindCommand,
+  wechatNotifyCommand,
+  wechatPollCommand,
+  wechatBindConfirmCommand,
+  wechatReplyCommand,
+} from '../wechat/cli.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../../package.json');
@@ -111,6 +120,73 @@ program
       .option('--json', 'Output as JSON')
       .action(async (name, options) => {
         await pluginStopCommand(name, options);
+      }),
+  );
+
+program
+  .command('wechat')
+  .description('WeChat binding and notifications')
+  .addCommand(
+    new Command('bind')
+      .description('Bind a WeChat user account')
+      .option('--json', 'Output as JSON')
+      .action(async (options) => {
+        await wechatBindCommand('.', options);
+      }),
+  )
+  .addCommand(
+    new Command('status')
+      .description('Show WeChat binding status')
+      .option('--json', 'Output as JSON')
+      .action(async (options) => {
+        await wechatStatusCommand('.', options);
+      }),
+  )
+  .addCommand(
+    new Command('unbind')
+      .description('Unbind the WeChat user account')
+      .option('--json', 'Output as JSON')
+      .action(async (options) => {
+        await wechatUnbindCommand('.', options);
+      }),
+  )
+  .addCommand(
+    new Command('notify')
+      .description('Send a notification to the bound WeChat user')
+      .argument('<change-name>', 'Change name')
+      .argument('<question>', 'Question text')
+      .argument('<options-json>', 'Options as JSON array')
+      .option('--json', 'Output as JSON')
+      .action(async (changeName, question, optionsJson, opts) => {
+        await wechatNotifyCommand('.', changeName, question, optionsJson, opts);
+      }),
+  )
+  .addCommand(
+    new Command('poll')
+      .description('Check for pending WeChat replies')
+      .option('--json', 'Output as JSON')
+      .action(async (options) => {
+        await wechatPollCommand('.', options);
+      }),
+  )
+  .addCommand(
+    new Command('bind-confirm')
+      .description('Confirm a WeChat binding (internal)')
+      .argument('<user-id>', 'WeChat user ID')
+      .argument('<nickname>', 'WeChat nickname')
+      .argument('<pairing-code>', 'Pairing code')
+      .option('--json', 'Output as JSON')
+      .action(async (userId, nickname, pairingCode, options) => {
+        await wechatBindConfirmCommand('.', userId, nickname, pairingCode, options);
+      }),
+  )
+  .addCommand(
+    new Command('reply')
+      .description('Record a WeChat reply (internal)')
+      .argument('<reply-value>', 'Reply value')
+      .option('--json', 'Output as JSON')
+      .action(async (replyValue, options) => {
+        await wechatReplyCommand('.', replyValue, options);
       }),
   );
 
