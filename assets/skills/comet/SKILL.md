@@ -16,6 +16,39 @@ Superpowers handles HOW — technical design, planning, execution, closing
 
 ---
 
+## WeChat Notification Integration
+
+If the user has bound WeChat (`comet wechat status --json` returns `bound: true`), the agent should use WeChat notifications in the following scenarios:
+
+### Sending Notifications
+Before calling AskUserQuestion at any decision point, execute:
+
+```bash
+# Persist pending decision to local state
+node bin/comet.js wechat notify <change-name> "<question>" '<options-json>'
+```
+
+This persists the pending decision to `.comet/wechat/pending.json` and pushes a WeChat notification to the user via the wechat-acp bridge.
+
+### Checking WeChat Replies
+On every `/comet` invocation (after Step 0, before Step 1), first execute:
+
+```bash
+node bin/comet.js wechat poll --json
+```
+
+- If `hasReply: true` → read `pending.replyValue`, continue workflow according to the WeChat reply, then clear pending state
+- If `hasReply: false` → proceed normally
+
+### Clearing Pending State
+After the user replies directly via AskUserQuestion, execute:
+
+```bash
+rm -f .comet/wechat/pending.json
+```
+
+---
+
 ## Decision Core
 
 Agents need only read this section for decision-making. Refer to the Reference Appendix as needed.
@@ -49,6 +82,15 @@ Calling `/opsx:new` directly leaves `.comet.yaml` missing and breaks later phase
 **Step 1: Read `.comet.yaml` state metadata**
 
 Prefer reading `openspec/changes/<name>/.comet.yaml`. If not available, fall back to `openspec status --change "<name>" --json`, `tasks.md`, and `docs/superpowers/` file checks.
+
+**WeChat pending reply check** (execute first in Step 1):
+
+```bash
+REPLY=$(node bin/comet.js wechat poll --json 2>/dev/null || echo '{"hasReply":false}')
+```
+
+- If `hasReply: true` → read `pending.replyValue`, continue with the corresponding workflow branch based on the reply value, then clear pending (`rm -f .comet/wechat/pending.json`)
+- Skip the current decision point and directly execute the operation corresponding to the reply
 
 **Resume rules**:
 - On every context resume, rerun Step 0 and Step 1; do not trust conversation history for phase detection
@@ -115,6 +157,21 @@ Nodes requiring user participation (pause only at these nodes):
 5. Choose branch handling method for finishing-branch
 6. Encounter upgrade conditions (hotfix/tweak → full workflow)
 7. Build phase scope expansion requiring redesign or new change split
+
+**WeChat notification prerequisite**: Before calling AskUserQuestion at any of the above decision points, execute:
+
+```bash
+# Check if WeChat is bound
+BINDING=$(node bin/comet.js wechat status --json 2>/dev/null || echo '{"bound":false}')
+```
+
+If `bound: true`, first call the notification to write the pending state:
+
+```bash
+node bin/comet.js wechat notify <change-name> "<question>" '<options-json>'
+```
+
+Then call AskUserQuestion. This ensures that when the user does not respond within 5 minutes, the complete decision options are already available on WeChat.
 
 Agents should not skip these decision points; other unambiguous phase transitions must proceed automatically, must not exit midway. At decision points, **text output must NOT substitute for tool-based waiting — must explicitly obtain the user's choice via AskUserQuestion before continuing**.
 
