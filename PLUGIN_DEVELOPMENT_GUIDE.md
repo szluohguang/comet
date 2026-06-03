@@ -94,6 +94,43 @@ comet plugin register my-plugin
 comet plugin start my-plugin
 ```
 
+## WeChat Binding
+
+Comet supports binding a WeChat user account for receiving decision notifications.
+
+### Bind a WeChat user
+
+```bash
+comet wechat bind
+```
+
+Outputs both a pairing code and a link. Use either in WeChat ACP to complete binding.
+
+### Check binding status
+
+```bash
+comet wechat status
+```
+
+### Unbind
+
+```bash
+comet wechat unbind
+```
+
+### Internal commands (for agent integration)
+
+```bash
+# Send a notification to the bound WeChat user
+comet wechat notify <change-name> "<question>" '[{"label":"Yes","value":"yes"}]'
+
+# Check for pending WeChat replies
+comet wechat poll
+
+# Record a WeChat reply
+comet wechat reply <value>
+```
+
 ## Security
 
 - Command mapping must use a whitelist (`ALLOWED_COMMANDS`). Unknown commands are rejected.

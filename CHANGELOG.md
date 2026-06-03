@@ -2,6 +2,22 @@
 
 All notable changes to @rpamis/comet will be documented in this file.
 
+## What's Changed [0.4.0] - 2026-06-03
+
+### Added
+
+- **微信通知与绑定**: 新增 `comet wechat` CLI 子命令（bind/status/unbind/notify/poll），支持配对码 + 链接双通道绑定微信用户
+- **待处理决策管理**: 新增 `src/wechat/pending.ts`，决策点通知写入本地状态，Agent 下次启动时通过 `comet wechat poll` 读取微信回复
+- **微信通知发送**: 新增 `src/wechat/notifier.ts`，通过 wechat-acp bridge 向绑定用户推送确认通知
+
+### Changed
+
+- **CLI 扩展**: `src/cli/index.ts` 注册 wechat 命令组（7 个子命令）
+
+### Tests
+
+- 新增 `test/ts/wechat/binding.test.ts` (7 tests) + `test/ts/wechat/pending.test.ts` (6 tests)
+
 ## What's Changed [0.4.0] - 2026-06-02
 
 ### Added

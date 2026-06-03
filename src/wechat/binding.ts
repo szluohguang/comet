@@ -36,7 +36,7 @@ export async function getBinding(projectRoot: string): Promise<BindingState | nu
   return JSON.parse(raw) as BindingState;
 }
 
-export async function generatePairingCode(projectRoot: string): Promise<{
+export async function generatePairingCode(_projectRoot: string): Promise<{
   code: string;
   link: string;
   expiresAt: string;
