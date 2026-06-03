@@ -11,6 +11,6 @@ verification_report: docs/superpowers/reports/2026-06-03-add-wechat-acp-integrat
 branch_status: handled
 created_at: 2026-06-02
 verified_at: 2026-06-03
-archived: false
+archived: true
 handoff_context: openspec/changes/add-wechat-aCP-integration/.comet/handoff/design-context.json
 handoff_hash: bc377a6ef576c3278d5dc8ee1da55e8604546a1d42a6e6e013ddfd487635c1ab
