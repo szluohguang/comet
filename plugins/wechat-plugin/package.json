@@ -1,0 +1,10 @@
+{
+  "name": "@comet/wechat-plugin",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/plugins/wechat-plugin/src/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  }
+}

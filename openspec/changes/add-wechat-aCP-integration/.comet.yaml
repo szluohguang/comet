@@ -1,7 +1,7 @@
 workflow: full
 phase: build
-build_mode: null
-isolation: null
+build_mode: subagent-driven-development
+isolation: branch
 verify_mode: null
 base_ref: 0bbf05ec8de950e5cff1078881a85c6ddb924cca
 design_doc: docs/superpowers/specs/2026-06-02-wechat-acp-plugin-integration-design.md
