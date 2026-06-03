@@ -1,5 +1,5 @@
 // src/plugin/manager.ts
-import type { Plugin, PluginConfig } from '../../plugins/sdk.js';
+import type { Plugin, PluginConfig } from '../plugins/sdk.js';
 
 interface PluginEntry {
   name: string;

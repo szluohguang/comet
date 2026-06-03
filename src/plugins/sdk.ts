@@ -1,4 +1,4 @@
-// plugins/sdk.ts
+// src/plugins/sdk.ts
 
 export interface PluginConfig {
   name: string;

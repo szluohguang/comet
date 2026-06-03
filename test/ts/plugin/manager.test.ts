@@ -1,7 +1,7 @@
 // test/ts/plugin/manager.test.ts
 import { describe, it, expect, vi } from 'vitest';
 import { PluginManager } from '../../../src/plugin/manager.js';
-import type { Plugin, PluginConfig } from '../../../plugins/sdk.js';
+import type { Plugin, PluginConfig } from '../../../src/plugins/sdk.js';
 
 describe('PluginManager', () => {
   it('starts with empty registry', () => {
