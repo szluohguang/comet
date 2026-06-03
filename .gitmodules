@@ -1,0 +1,3 @@
+[submodule "plugins/wechat-acp"]
+	path = plugins/wechat-acp
+	url = https://github.com/szluohguang/wechat-acp.git
