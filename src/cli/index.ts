@@ -4,7 +4,12 @@ import { initCommand } from '../commands/init.js';
 import { statusCommand } from '../commands/status.js';
 import { doctorCommand } from '../commands/doctor.js';
 import { updateCommand } from '../commands/update.js';
-import { pluginListCommand, pluginRegisterCommand } from '../commands/plugin.js';
+import {
+  pluginListCommand,
+  pluginRegisterCommand,
+  pluginStartCommand,
+  pluginStopCommand,
+} from '../commands/plugin.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../../package.json');
@@ -88,6 +93,24 @@ program
       .option('--json', 'Output as JSON')
       .action(async (name, options) => {
         await pluginRegisterCommand('.', name, options);
+      }),
+  )
+  .addCommand(
+    new Command('start')
+      .description('Start a registered plugin')
+      .argument('<name>', 'Plugin name')
+      .option('--json', 'Output as JSON')
+      .action(async (name, options) => {
+        await pluginStartCommand(name, options);
+      }),
+  )
+  .addCommand(
+    new Command('stop')
+      .description('Stop a running plugin')
+      .argument('<name>', 'Plugin name')
+      .option('--json', 'Output as JSON')
+      .action(async (name, options) => {
+        await pluginStopCommand(name, options);
       }),
   );
 

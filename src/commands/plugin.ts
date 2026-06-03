@@ -1,4 +1,3 @@
-// src/commands/plugin.ts
 import { PluginManager } from '../plugin/manager.js';
 import { PluginLoader } from '../plugin/loader.js';
 
@@ -6,9 +5,26 @@ interface PluginOptions {
   json?: boolean;
 }
 
-export async function pluginListCommand(pluginDir: string, options: PluginOptions): Promise<void> {
-  // placeholder — will be integrated with PluginManager
-  console.log('Plugin list (not yet integrated)');
+const manager = new PluginManager();
+const loader = new PluginLoader({ pluginDir: 'plugins' });
+
+export async function pluginListCommand(
+  _pluginDir: string,
+  options: PluginOptions,
+): Promise<void> {
+  const plugins = manager.list();
+  if (options.json) {
+    console.log(JSON.stringify(plugins, null, 2));
+    return;
+  }
+  if (plugins.length === 0) {
+    console.log('No plugins registered.');
+    return;
+  }
+  console.log('Registered plugins:');
+  for (const p of plugins) {
+    console.log(`  ${p.name} (${p.running ? 'running' : 'stopped'})`);
+  }
 }
 
 export async function pluginRegisterCommand(
@@ -16,9 +32,57 @@ export async function pluginRegisterCommand(
   pluginName: string,
   options: PluginOptions,
 ): Promise<void> {
-  const loader = new PluginLoader({ pluginDir });
-  const manager = new PluginManager();
-  const plugin = await loader.load(pluginName);
-  manager.register(plugin);
-  console.log(`Plugin '${pluginName}' registered.`);
+  try {
+    const plugin = await loader.load(pluginName);
+    manager.register(plugin);
+    if (options.json) {
+      console.log(JSON.stringify({ status: 'registered', name: pluginName }, null, 2));
+      return;
+    }
+    console.log(`Plugin '${pluginName}' registered.`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (options.json) {
+      console.log(JSON.stringify({ status: 'error', message }, null, 2));
+      return;
+    }
+    console.error(`Error: ${message}`);
+    process.exit(1);
+  }
+}
+
+export async function pluginStartCommand(
+  pluginName: string,
+  options: PluginOptions,
+): Promise<void> {
+  try {
+    await manager.start(pluginName, { name: pluginName, enabled: true });
+    if (options.json) {
+      console.log(JSON.stringify({ status: 'started', name: pluginName }, null, 2));
+      return;
+    }
+    console.log(`Plugin '${pluginName}' started.`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`Error: ${message}`);
+    process.exit(1);
+  }
+}
+
+export async function pluginStopCommand(
+  pluginName: string,
+  options: PluginOptions,
+): Promise<void> {
+  try {
+    await manager.stop(pluginName);
+    if (options.json) {
+      console.log(JSON.stringify({ status: 'stopped', name: pluginName }, null, 2));
+      return;
+    }
+    console.log(`Plugin '${pluginName}' stopped.`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`Error: ${message}`);
+    process.exit(1);
+  }
 }
